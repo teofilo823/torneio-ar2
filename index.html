@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏆 Arena Esports - Inscrições & Torneios</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen selection:bg-indigo-500 selection:text-white">
+
+    <nav class="bg-slate-900/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-50 px-4 py-3">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('home')">
+                <div class="bg-indigo-600 p-2 rounded-xl shadow-lg shadow-indigo-500/30">
+                    <i class="fas fa-trophy text-xl text-white"></i>
+                </div>
+                <span class="text-xl font-black tracking-wider bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">ARENA ESPORTS</span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button onclick="switchTab('brackets')" class="text-sm font-semibold text-slate-400 hover:text-white transition py-2 px-3 rounded-lg hover:bg-slate-800">
+                    <i class="fas fa-sitemap mr-2"></i>Chaves
+                </button>
+                <button onclick="toggleAdminAuth()" id="btn-adm-nav" class="bg-slate-800 hover:bg-indigo-600 text-white text-sm font-bold px-4 py-2 rounded-xl border border-slate-700 hover:border-indigo-500 transition-all duration-300">
+                    <i class="fas fa-lock mr-2"></i>Painel ADM
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-5xl mx-auto px-4 py-8">
+        
+        <div id="tab-home" class="tab-content space-y-8">
+            <div class="bg-gradient-to-br from-slate-900 to-slate-800 p-6 rounded-2xl border border-slate-800 shadow-xl relative overflow-hidden">
+                <div class="absolute -right-10 -bottom-10 text-slate-800/20 text-9xl font-black select-none pointer-events-none">LIVE</div>
+                <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+                    <div>
+                        <span id="badge-status" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3"></span>
+                        <h2 class="text-2xl font-extrabold text-white" id="display-camp-title">Carregando informações...</h2>
+                        <p class="text-sm text-slate-400 mt-1" id="display-camp-detail">Aguarde o administrador abrir o evento.</p>
+                    </div>
+                    <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800 text-center min-w-[150px]">
+                        <span class="text-xs font-bold uppercase tracking-widest text-slate-500 block mb-1">Vagas Preenchidas</span>
+                        <div class="text-2xl font-black text-indigo-400" id="display-slots-counter">0 / 0</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="form-container" class="bg-slate-900 rounded-2xl border border-slate-800 shadow-xl p-6 md:p-8">
+                <div class="border-b border-slate-800 pb-4 mb-6">
+                    <h3 class="text-xl font-bold text-white"><i class="fas fa-file-signature text-indigo-500 mr-2"></i>Ficha de Inscrição Oficial</h3>
+                    <p class="text-xs text-slate-400 mt-1">Insira os dados corretos. Nicks incorretos podem levar à desclassificação.</p>
+                </div>
+
+                <form id="reg-form" onsubmit="submitRegistration(event)" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Nome do Time / Tag Líder</label>
+                            <input type="text" id="inp-team-name" required placeholder="Ex: Los Grandes, Team Roblox, etc." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:outline-none focus:border-indigo-500 transition placeholder:text-slate-600 text-sm">
+                        </div>
+                    </div>
+
+                    <div id="dynamic-players-zone" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+
+                    <div class="border-t border-slate-800 pt-6">
+                        <h4 class="text-sm font-bold uppercase tracking-wider text-purple-400 mb-3"><i class="fas fa-user-plus mr-2"></i>Jogadores Reservas (Opcional)</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-slate-950/50 p-4 rounded-xl border border-slate-800 space-y-3">
+                                <span class="text-xs font-bold text-slate-500 uppercase">Reserva 1</span>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <input type="text" id="sub1-roblox" placeholder="Nick Roblox" class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-purple-500">
+                                    <input type="text" id="sub1-discord" placeholder="Discord" class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-purple-500">
+                                </div>
+                            </div>
+                            <div class="bg-slate-950/50 p-4 rounded-xl border border-slate-800 space-y-3">
+                                <span class="text-xs font-bold text-slate-500 uppercase">Reserva 2</span>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <input type="text" id="sub2-roblox" placeholder="Nick Roblox" class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-purple-500">
+                                    <input type="text" id="sub2-discord" placeholder="Discord" class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-purple-500">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-extrabold py-4 rounded-xl shadow-lg shadow-indigo-600/20 hover:shadow-indigo-600/30 transition-all duration-300 transform active:scale-[0.99] tracking-wider uppercase text-sm">
+                        Enviar Inscrição do Time
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div id="tab-brackets" class="tab-content hidden space-y-6">
+            <div class="bg-slate-900 rounded-2xl border border-slate-800 p-6 shadow-xl">
+                <h3 class="text-xl font-bold text-white mb-2"><i class="fas fa-sitemap text-purple-500 mr-2"></i>Árvore de Confrontos (Mata-Mata)</h3>
+                <p class="text-xs text-slate-400 mb-6">Chaves geradas pelo administrador com base nos times confirmados na lista principal.</p>
+                
+                <div id="brackets-canvas" class="flex items-center justify-start overflow-x-auto gap-12 py-8 min-h-[400px] scrollbar-thin">
+                    <div class="text-center w-full text-slate-500 py-12">Nenhuma chave gerada para o campeonato ativo.</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-admin" class="tab-content hidden space-y-8">
+            <div class="flex justify-between items-center bg-slate-900 p-4 rounded-xl border border-red-900/30">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-red-500/10 p-2 rounded-lg text-red-400"><i class="fas fa-user-shield"></i></div>
+                    <h3 class="font-bold text-red-400">Modo Administrador Autenticado</h3>
+                </div>
+                <button onclick="logoutAdmin()" class="bg-slate-800 hover:bg-slate-700 text-xs px-3 py-1.5 rounded-lg border border-slate-700 text-slate-300">Sair</button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-slate-900 rounded-2xl border border-slate-800 p-5 space-y-4">
+                    <h4 class="font-bold text-sm uppercase tracking-wider text-slate-400"><i class="fas fa-cog mr-2 text-indigo-500"></i>Configurações Básicas</h4>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Formato do Campeonato</label>
+                        <select id="adm-select-format" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-white">
+                            <option value="1">1v1</option>
+                            <option value="2">2v2</option>
+                            <option value="3">3v3</option>
+                            <option value="4">4v4</option>
+                            <option value="5">5v5</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Limite Máximo de Vagas</label>
+                        <input type="number" id="adm-input-slots" value="8" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Status da Inscrição</label>
+                        <select id="adm-select-status" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-white">
+                            <option value="aberto">Abertas (Aceitando) ✅</option>
+                            <option value="fechado">Fechadas (Encerrado) ❌</option>
+                        </select>
+                    </div>
+                    <button onclick="saveAdminConfig()" class="w-full bg-indigo-600 hover:bg-indigo-500 py-2 rounded-xl text-xs font-bold transition">Aplicar Alterações</button>
+                </div>
+
+                <div class="bg-slate-900 rounded-2xl border border-slate-800 p-5 space-y-4 md:col-span-2 flex flex-col justify-between">
+                    <div>
+                        <h4 class="font-bold text-sm uppercase tracking-wider text-slate-400 mb-2"><i class="fab fa-discord mr-2 text-blue-400"></i>Webhook do Discord</h4>
+                        <p class="text-xs text-slate-500 mb-2">Cole o link do seu Webhook para receber logs de inscrições no seu servidor.</p>
+                        <input type="text" id="adm-discord-webhook" placeholder="https://discord.com/api/webhooks/..." class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                    </div>
+                    
+                    <div class="border-t border-slate-800 pt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <button onclick="generateTournamentBrackets()" class="bg-purple-600 hover:bg-purple-500 py-3 px-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2">
+                            <i class="fas fa-sitemap"></i> Gerar Chaves Brackets
+                        </button>
+                        <button onclick="clearTournamentBrackets()" class="bg-slate-800 hover:bg-slate-700 py-3 px-2 rounded-xl text-xs font-bold text-slate-400 border border-slate-700 transition flex items-center justify-center gap-2">
+                            <i class="fas fa-eraser"></i> Limpar Chaves
+                        </button>
+                        <button onclick="resetAllData()" class="bg-red-900/40 hover:bg-red-800 border border-red-700/50 py-3 px-2 rounded-xl text-xs font-bold text-red-200 transition flex items-center justify-center gap-2">
+                            <i class="fas fa-trash-alt"></i> Resetar Banco Completo
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <div class="bg-slate-900 rounded-2xl border border-slate-800 p-6 shadow-xl">
+                    <h4 class="font-bold text-base text-emerald-400 mb-4 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        Lista de Equipes Principais (<span id="cnt-main">0</span>)
+                    </h4>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="border-b border-slate-800 text-slate-400 uppercase tracking-wider">
+                                    <th class="p-3 font-semibold">Time</th>
+                                    <th class="p-3 font-semibold">Integrantes (Roblox / Discord)</th>
+                                    <th class="p-3 font-semibold">Reservas</th>
+                                    <th class="p-3 font-semibold text-center">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbl-main-body" class="divide-y divide-slate-800/50 text-slate-300">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900 rounded-2xl border border-slate-800 p-6 shadow-xl">
+                    <h4 class="font-bold text-base text-yellow-500 mb-4 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-yellow-500"></span>
+                        Fila de Espera / Cadastro Reserva (<span id="cnt-wait">0</span>)
+                    </h4>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="border-b border-slate-800 text-slate-400 uppercase tracking-wider">
+                                    <th class="p-3 font-semibold">Time</th>
+                                    <th class="p-3 font-semibold">Integrantes</th>
+                                    <th class="p-3 font-semibold">Reservas</th>
+                                    <th class="p-3 font-semibold text-center">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbl-wait-body" class="divide-y divide-slate-800/50 text-slate-300">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // CONFIGURAÇÕES SEGURAS DO ADMINISTRADOR
+        // A string abaixo é o Hash criptográfico da senha "Campeonato2026!"
+        const SECURE_HASH = "3146a4effddd9eaf662de659ed317a2542a9154449bdc46490b0fd825a1df35a";
+        let isAuth = false;
+
+        // ESTADOS DE ARMAZENAMENTO LOCAL
+        let sysConfig = JSON.parse(localStorage.getItem('arena_config')) || {
+            format: 1,
+            slots: 8,
+            status: 'fechado',
+            webhook: ''
+        };
+        let sysTeams = JSON.parse(localStorage.getItem('arena_teams')) || [];
+        let sysBrackets = JSON.parse(localStorage.getItem('arena_brackets')) || [];
+
+        window.onload = function() {
+            refreshInterface();
+        };
+
+        // ALTERNADOR DE ABAS / PÁGINAS
+        function switchTab(target) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            if(target === 'home') document.getElementById('tab-home').classList.remove('hidden');
+            if(target === 'brackets') document.getElementById('tab-brackets').classList.remove('hidden');
+            if(target === 'admin') {
+                if(isAuth) {
+                    document.getElementById('tab-admin').classList.remove('hidden');
+                } else {
+                    document.getElementById('tab-home').classList.remove('hidden');
+                }
+            }
+        }
+
+        // PROTOCOLO DE AUTENTICAÇÃO DO PAINEL ADM
+        function toggleAdminAuth() {
+            if(isAuth) {
+                switchTab('admin');
+                return;
+            }
+            const inputPass = prompt("Insira a chave mestra de Administrador:");
+            if(!inputPass) return;
+
+            const computedHash = CryptoJS.SHA256(inputPass).toString();
+            if(computedHash === SECURE_HASH) {
+                isAuth = true;
+                document.getElementById('btn-adm-nav').className = "bg-red-600 hover:bg-red-500 text-white text-sm font-bold px-4 py-2 rounded-xl transition";
+                document.getElementById('btn-adm-nav').innerHTML = `<i class="fas fa-unlock mr-2"></i>Painel Ativo`;
+                
+                // Sincroniza formulários ADM
+                document.getElementById('adm-select-format').value = sysConfig.format;
+                document.getElementById('adm-input-slots').value = sysConfig.slots;
+                document.getElementById('adm-select-status').value = sysConfig.status;
+                document.getElementById('adm-discord-webhook').value = sysConfig.webhook || '';
+                
+                switchTab('admin');
+                refreshInterface();
+            } else {
+                alert("❌ Código de acesso inválido!");
+            }
+        }
+
+        function logoutAdmin() {
+            isAuth = false;
+            document.getElementById('btn-adm-nav').className = "bg-slate-800 hover:bg-indigo-600 text-white text-sm font-bold px-4 py-2 rounded-xl border border-slate-700 hover:border-indigo-500 transition-all duration-300";
+            document.getElementById('btn-adm-nav').innerHTML = `<i class="fas fa-lock mr-2"></i>Painel ADM`;
+            switchTab('home');
+        }
+
+        // CONFIGURAÇÕES OPERACIONAIS (ADM)
+        function saveAdminConfig() {
+            sysConfig.format = parseInt(document.getElementById('adm-select-format').value);
+            sysConfig.slots = parseInt(document.getElementById('adm-input-slots').value);
+            sysConfig.status = document.getElementById('adm-select-status').value;
+            sysConfig.webhook = document.getElementById('adm-discord-webhook').value;
+
+            localStorage.setItem('arena_config', JSON.stringify(sysConfig));
+            alert("⚙️ Configurações sincronizadas!");
+            refreshInterface();
+        }
+
+        // RENDERIZADOR DA INTERFACE DINÂMICA
+        function refreshInterface() {
+            // Atualizar Card de Status Home
+            const badge = document.getElementById('badge-status');
+            const title = document.getElementById('display-camp-title');
+            const detail = document.getElementById('display-camp-detail');
+            const slotsText = document.getElementById('display-slots-counter');
+            const formBox = document.getElementById('form-container');
+
+            const totalInscritos = sysTeams.length;
+            slotsText.innerText = `${totalInscritos} / ${sysConfig.slots}`;
+
+            if(sysConfig.status === 'aberto') {
+                badge.className = "inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+                badge.innerText = "Inscrições Abertas";
+                title.innerText = `Torneio de Roblox no Formato ${sysConfig.format}v${sysConfig.format}`;
+                
+                if(totalInscritos >= sysConfig.slots) {
+                    detail.innerText = "⚠️ Vagas principais esgotadas! Novas inscrições entrarão na Lista de Espera.";
+                    detail.className = "text-sm text-yellow-400 mt-1";
+                } else {
+                    detail.innerText = "Garanta a vaga da sua equipe preenchendo o formulário abaixo.";
+                    detail.className = "text-sm text-slate-400 mt-1";
+                }
+                formBox.classList.remove('hidden');
+            } else {
+                badge.className = "inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3 bg-red-500/10 text-red-400 border border-red-500/20";
+                badge.innerText = "Inscrições Fechadas";
+                title.innerText = "Nenhum evento ativo no momento";
+                detail.innerText = "Fique atento ao Discord da organização para os próximos lançamentos.";
+                detail.className = "text-sm text-slate-400 mt-1";
+                formBox.classList.add('hidden');
+            }
+
+            // Gerar Campos do Form de Acordo com o Formato
+            const zone = document.getElementById('dynamic-players-zone');
+            zone.innerHTML = '';
+            for(let i = 1; i <= sysConfig.format; i++) {
+                const block = document.createElement('div');
+                block.className = "bg-slate-950/40 p-4 rounded-xl border border-slate-800 space-y-2";
+                block.innerHTML = `
+                    <span class="text-[10px] font-black text-indigo-400 uppercase tracking-widest block">Jogador 0${i} ${i===1?'(Capitão/Líder)':''}</span>
+                    <div class="grid grid-cols-2 gap-3">
+                        <input type="text" id="p${i}-roblox" required placeholder="Roblox User" class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-indigo-500">
+                        <input type="text" id="p${i}-discord" required placeholder="Discord (ex: nick)" class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-indigo-500">
+                    </div>
+                `;
+                zone.appendChild(block);
+            }
+
+            // Renderizar Painéis de Tabelas do ADM
+            if(isAuth) {
+                renderAdminTables();
+            }
+
+            // Renderizar Chaves de Partidas
+            renderBracketsDOM();
+        }
+
+        // FLUXO DE SUBMISSÃO DA INSCRIÇÃO (USER)
+        function submitRegistration(e) {
+            e.preventDefault();
+
+            let datasetPlayers = [];
+            for(let i = 1; i <= sysConfig.format; i++) {
+                datasetPlayers.push({
+                    roblox: document.getElementById(`p${i}-roblox`).value.trim(),
+                    discord: document.getElementById(`p${i}-discord`).value.trim()
+                });
+            }
+
+            const isWaitingList = sysTeams.length >= sysConfig.slots;
+
+            const payload = {
+                id: Date.now(),
+                teamName: document.getElementById('inp-team-name').value.trim(),
+                players: datasetPlayers,
+                subs: [
+                    { roblox: document.getElementById('sub1-roblox').value.trim(), discord: document.getElementById('sub1-discord').value.trim() },
+                    { roblox: document.getElementById('sub2-roblox').value.trim(), discord: document.getElementById('sub2-discord').value.trim() }
+                ],
+                waiting: isWaitingList
+            };
+
+            sysTeams.push(payload);
+            localStorage.setItem('arena_teams', JSON.stringify(sysTeams));
+
+            // Disparar Log para o Webhook do Discord se cadastrado
+            triggerDiscordWebhook(payload);
+
+            alert(isWaitingList ? "⚠️ Vagas cheias! Sua equipe foi salva na Lista de Espera com sucesso!" : "🎉 Inscrição validada e confirmada na lista principal!");
+            document.getElementById('reg-form').reset();
+            refreshInterface();
+        }
+
+        // CONTROLADOR DE LOGS VIA DISCORD WEBHOOK
+        function triggerDiscordWebhook(data) {
+            if(!sysConfig.webhook) return;
+
+            const playersFormatted = data.players.map((p, i) => `🏅 J${i+1}: ${p.roblox} (Discord: ${p.discord})`).join('\n');
+            const statusLine = data.waiting ? "⚠️ FILA DE ESPERA" : "✅ LISTA PRINCIPAL";
+
+            const payloadText = {
+                content: `🆕 **Nova Inscrição Recebida!**\n**Time:** ${data.teamName}\n**Status:** ${statusLine}\n**Formato:** ${sysConfig.format}v${sysConfig.format}\n\n**Escalação:**\n${playersFormatted}`;
+            };
+
+            fetch(sysConfig.webhook, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payloadText)
+            }).catch(err => console.error("Erro ao enviar Webhook:", err));
+        }
+
+        // RENDERIZAÇÃO DAS PLANILHAS ADMINISTRATIVAS
+        function renderAdminTables() {
+            const mainBody = document.getElementById('tbl-main-body');
+            const waitBody = document.getElementById('tbl-wait-body');
+            
+            mainBody.innerHTML = '';
+            waitBody.innerHTML = '';
+
+            const mainTeams = sysTeams.filter(t => !t.waiting);
+            const waitTeams = sysTeams.filter(t => t.waiting);
+
+            document.getElementById('cnt-main').innerText = mainTeams.length;
+            document.getElementById('cnt-wait').innerText = waitTeams.length;
+
+            const buildRow = (t) => {
+                let listP = t.players.map((p, idx) => `<div><b>J${idx+1}:</b> ${p.roblox} <span class="text-slate-500">| ${p.discord}</span></div>`).join('');
+                let listS = t.subs.filter(s => s.roblox).map(s => `<div>${s.roblox} <span class="text-slate-600">(${s.discord})</span></div>`).join('') || 'Nenhum';
+
+                const tr = document.createElement('tr');
+                tr.className = "border-b border-slate-900 hover:bg-slate-900/40 transition";
+                tr.innerHTML = `
+                    <td class="p-3 font-bold text-white max-w-[150px] truncate">${t.teamName}</td>
+                    <td class="p-3 space-y-1">${listP}</td>
+                    <td class="p-3 text-slate-400">${listS}</td>
+                    <td class="p-3 text-center space-x-2 whitespace-nowrap">
+                        <button onclick="editTeamRow(${t.id})" class="text-blue-400 hover:text-blue-300 transition mx-1"><i class="fas fa-edit"></i></button>
+                        <button onclick="deleteTeamRow(${t.id})" class="text-red-400 hover:text-red-300 transition mx-1"><i class="fas fa-trash"></i></button>
+                    </td>
+                `;
+                return tr;
+            };
+
+            mainTeams.forEach(t => mainBody.appendChild(buildRow(t)));
+            waitTeams.forEach(t => waitBody.appendChild(buildRow(t)));
+        }
+
+        // EXCLUSÃO, EDIÇÃO E RESET GERAL (ADM)
+        function deleteTeamRow(id) {
+            if(!confirm("Tem certeza que deseja deletar este registro de equipe?")) return;
+            sysTeams = sysTeams.filter(t => t.id !== id);
+            
+            // Reorganização automática: Se sobrou vaga na lista principal, move o primeiro da fila de espera para cima
+            const mainCount = sysTeams.filter(t => !t.waiting).length;
+            if(mainCount < sysConfig.slots) {
+                const firstWait = sysTeams.find(t => t.waiting);
+                if(firstWait) firstWait.waiting = false;
+            }
+
+            localStorage.setItem('arena_teams', JSON.stringify(sysTeams));
+            refreshInterface();
+        }
+
+        function editTeamRow(id) {
+            const team = sysTeams.find(t => t.id === id);
+            if(!team) return;
+
+            const newName = prompt("Insira a nova alcunha/nome do Time:", team.teamName);
+            if(newName && newName.trim() !== "") {
+                team.teamName = newName.trim();
+                localStorage.setItem('arena_teams', JSON.stringify(sysTeams));
+                refreshInterface();
+            }
+        }
+
+        function resetAllData() {
+            if(!confirm("⚠️ AVISO MÁXIMO:\nIsso limpará as chaves, lista de espera e todas as inscrições permanentemente. Deseja prosseguir?")) return;
+            sysTeams = [];
+            sysBrackets = [];
+            localStorage.setItem('arena_teams', JSON.stringify(sysTeams));
+            localStorage.setItem('arena_brackets', JSON.stringify(sysBrackets));
+            refreshInterface();
+            alert("Sistema resetado com sucesso.");
+        }
+
+        // RECURSO DE CHAVES AUTOMÁTICAS (BRACKETS)
+        function generateTournamentBrackets() {
+            const confirmed = sysTeams.filter(t => !t.waiting);
+            if(confirmed.length < 2) {
+                alert("❌ São necessários pelo menos 2 times confirmados na lista principal para gerar chaves!");
+                return;
+            }
+
+            // Embaralhamento randômico (Seed Matchmaking)
+            let shuffled = [...confirmed].sort(() => 0.5 - Math.random());
+            
+            sysBrackets = [];
+            // Monta o Round 1 (Oitavas, Quartas ou Semifinais dependendo da quantidade)
+            for(let i = 0; i < shuffled.length; i += 2) {
+                sysBrackets.push({
+                    id: i / 2,
+                    teamA: shuffled[i].teamName,
+                    teamB: shuffled[i+1] ? shuffled[i+1].teamName : "BYE (W.O)"
+                });
+            }
+
+            localStorage.setItem('arena_brackets', JSON.stringify(sysBrackets));
+            alert("🎯 Chaves de mata-mata criadas! Verifique na aba 'Chaves'.");
+            refreshInterface();
+            switchTab('brackets');
+        }
+
+        function clearTournamentBrackets() {
+            sysBrackets = [];
+            localStorage.setItem('arena_brackets', JSON.stringify(sysBrackets));
+            refreshInterface();
+            alert("Chaves limpas.");
+        }
+
+        function renderBracketsDOM() {
+            const canvas = document.getElementById('brackets-canvas');
+            canvas.innerHTML = '';
+
+            if(sysBrackets.length === 0) {
+                canvas.innerHTML = `<div class="text-center w-full text-slate-600 py-12"><i class="fas fa-sitemap block text-3xl mb-2"></i>Nenhuma chave ativa no momento.</div>`;
+                return;
+            }
+
+            // Renderiza os cards de confronto direto na rodada inicial
+            const column = document.createElement('div');
+            column.className = "space-y-6 min-w-[240px]";
+            
+            sysBrackets.forEach(b => {
+                const matchCard = document.createElement('div');
+                matchCard.className = "bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-md text-xs";
+                matchCard.innerHTML = `
+                    <div class="bg-slate-950 px-3 py-1.5 border-b border-slate-800 text-[10px] font-bold text-slate-500 uppercase tracking-wider flex justify-between">
+                        <span>CONFRONTO #${b.id + 1}</span>
+                        <i class="fas fa-crosshairs text-indigo-500"></i>
+                    </div>
+                    <div class="p-3 space-y-2">
+                        <div class="flex justify-between items-center text-white font-medium">
+                            <span><i class="fas fa-shield-alt text-blue-400 mr-2"></i>${b.teamA}</span>
+                        </div>
+                        <div class="border-t border-slate-800/60 my-1"></div>
+                        <div class="flex justify-between items-center text-white font-medium">
+                            <span><i class="fas fa-shield-alt text-purple-400 mr-2"></i>${b.teamB}</span>
+                        </div>
+                    </div>
+                `;
+                column.appendChild(matchCard);
+            });
+
+            canvas.appendChild(column);
+
+            // Interface Simbólica das Próximas Fases (Projeção Visual)
+            if(sysBrackets.length > 1) {
+                const nextCol = document.createElement('div');
+                nextCol.className = "space-y-16 min-w-[240px] pl-4 border-l border-dashed border-slate-800";
+                const nextMatchesCount = Math.ceil(sysBrackets.length / 2);
+                for(let i=1; i<=nextMatchesCount; i++) {
+                    const placeHolder = document.createElement('div');
+                    placeHolder.className = "bg-slate-900/40 border border-slate-800/50 rounded-xl p-3 text-slate-600 text-xs text-center border-dashed py-6";
+                    placeHolder.innerHTML = `<i class="fas fa-lock text-slate-700 block mb-1"></i>Vencedores da Rodada`;
+                    nextCol.appendChild(placeHolder);
+                }
+                canvas.appendChild(nextCol);
+            }
+        }
+    </script>
+</body>
+</html>
